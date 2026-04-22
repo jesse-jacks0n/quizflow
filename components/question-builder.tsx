@@ -209,16 +209,16 @@ export function QuestionBuilder({ questions, onChange }: QuestionBuilderProps) {
             />
 
             {/* Upload JSON Card */}
-            <Card className="border-sky-200 bg-sky-50/50 shadow-sm">
+            <Card className="border-sky-200 bg-sky-50/50 dark:border-sky-800 dark:bg-sky-950/30 shadow-sm">
                 <CardContent className="p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100">
-                                <FileJson className="h-5 w-5 text-sky-600" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 dark:bg-sky-900/40">
+                                <FileJson className="h-5 w-5 text-sky-600 dark:text-sky-400" />
                             </div>
                             <div>
-                                <p className="text-sm font-medium text-sky-800">Import from JSON</p>
-                                <p className="text-xs text-sky-600">
+                                <p className="text-sm font-medium text-sky-800 dark:text-sky-300">Import from JSON</p>
+                                <p className="text-xs text-sky-600 dark:text-sky-400">
                                     Upload a JSON file to bulk-add questions
                                 </p>
                             </div>
@@ -226,42 +226,42 @@ export function QuestionBuilder({ questions, onChange }: QuestionBuilderProps) {
                         <Button
                             variant="outline"
                             size="sm"
-                            className="gap-2 border-sky-300 text-sky-700 hover:bg-sky-100"
+                            className="gap-2 border-sky-300 text-sky-700 hover:bg-sky-100 dark:border-sky-700 dark:text-sky-400 dark:hover:bg-sky-900/40"
                             onClick={() => fileInputRef.current?.click()}
                         >
                             <Upload className="h-4 w-4" /> Upload JSON
                         </Button>
                     </div>
                     {uploadError && (
-                        <Alert variant="destructive" className="mt-3 border-red-200 bg-red-50">
-                            <AlertDescription className="text-sm text-red-800">{uploadError}</AlertDescription>
+                        <Alert variant="destructive" className="mt-3 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/50">
+                            <AlertDescription className="text-sm text-red-800 dark:text-red-300">{uploadError}</AlertDescription>
                         </Alert>
                     )}
                     {uploadSuccess && (
-                        <Alert className="mt-3 border-green-200 bg-green-50">
-                            <AlertDescription className="text-sm text-green-800">{uploadSuccess}</AlertDescription>
+                        <Alert className="mt-3 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/50">
+                            <AlertDescription className="text-sm text-green-800 dark:text-green-300">{uploadSuccess}</AlertDescription>
                         </Alert>
                     )}
                 </CardContent>
             </Card>
 
             {questions.length === 0 && (
-                <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-12 text-center">
-                    <p className="mb-2 text-lg font-medium text-slate-400">No questions yet</p>
-                    <p className="mb-6 text-sm text-slate-400">Add your first question to get started</p>
-                    <Button onClick={addQuestion} className="gap-2 bg-sky-500 hover:bg-sky-600">
+                <div className="rounded-xl border-2 border-dashed border-border bg-muted p-12 text-center">
+                    <p className="mb-2 text-lg font-medium text-muted-foreground">No questions yet</p>
+                    <p className="mb-6 text-sm text-muted-foreground">Add your first question to get started</p>
+                    <Button onClick={addQuestion} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
                         <Plus className="h-4 w-4" /> Add Question
                     </Button>
                 </div>
             )}
 
             {questions.map((q, qIdx) => (
-                <Card key={q.id} className="border-slate-200 shadow-sm">
+                <Card key={q.id} className="border-border shadow-sm">
                     <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <GripVertical className="h-4 w-4 text-slate-300" />
-                                <CardTitle className="text-base font-semibold text-slate-700">
+                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                <CardTitle className="text-base font-semibold text-foreground">
                                     Question {qIdx + 1}
                                 </CardTitle>
                             </div>
@@ -279,7 +279,7 @@ export function QuestionBuilder({ questions, onChange }: QuestionBuilderProps) {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => removeQuestion(qIdx)}
-                                    className="h-8 w-8 p-0 text-red-400 hover:text-red-600 hover:bg-red-50"
+                                    className="h-8 w-8 p-0 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
                                 >
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -289,7 +289,7 @@ export function QuestionBuilder({ questions, onChange }: QuestionBuilderProps) {
                     <CardContent className="space-y-4">
                         {/* Question text */}
                         <div className="space-y-2">
-                            <Label className="text-sm font-medium text-slate-600">Question Text</Label>
+                            <Label className="text-sm font-medium text-muted-foreground">Question Text</Label>
                             <Textarea
                                 placeholder="Enter your question..."
                                 value={q.text}
@@ -300,7 +300,7 @@ export function QuestionBuilder({ questions, onChange }: QuestionBuilderProps) {
 
                         {/* Points */}
                         <div className="flex items-center gap-3">
-                            <Label className="text-sm font-medium text-slate-600">Points</Label>
+                            <Label className="text-sm font-medium text-muted-foreground">Points</Label>
                             <Input
                                 type="number"
                                 min={1}
@@ -314,7 +314,7 @@ export function QuestionBuilder({ questions, onChange }: QuestionBuilderProps) {
                         {/* Multiple Choice options */}
                         {q.type === 'multiple-choice' && q.options && (
                             <div className="space-y-3">
-                                <Label className="text-sm font-medium text-slate-600">
+                                <Label className="text-sm font-medium text-muted-foreground">
                                     Options (select the correct answer)
                                 </Label>
                                 <RadioGroup
@@ -335,7 +335,7 @@ export function QuestionBuilder({ questions, onChange }: QuestionBuilderProps) {
                                                     variant="ghost"
                                                     size="sm"
                                                     onClick={() => removeOption(qIdx, optIdx)}
-                                                    className="h-8 w-8 p-0 text-slate-400 hover:text-red-500"
+                                                    className="h-8 w-8 p-0 text-muted-foreground hover:text-red-500"
                                                 >
                                                     <Trash2 className="h-3.5 w-3.5" />
                                                 </Button>
@@ -354,7 +354,7 @@ export function QuestionBuilder({ questions, onChange }: QuestionBuilderProps) {
                                     </Button>
                                 )}
                                 {!q.correctAnswer && (
-                                    <p className="text-sm text-amber-600">
+                                    <p className="text-sm text-amber-600 dark:text-amber-400">
                                         Please select the correct answer above
                                     </p>
                                 )}
@@ -364,7 +364,7 @@ export function QuestionBuilder({ questions, onChange }: QuestionBuilderProps) {
                         {/* Text Input correct answer */}
                         {q.type === 'text-input' && (
                             <div className="space-y-2">
-                                <Label className="text-sm font-medium text-slate-600">
+                                <Label className="text-sm font-medium text-muted-foreground">
                                     Accepted Answer (case-insensitive)
                                 </Label>
                                 <Input

@@ -143,18 +143,18 @@ export function TestTaker({ onBack, initialName = '', initialCode = '' }: TestTa
   // ─── JOIN PHASE ────────────────────────────────────────────
   if (phase === 'join') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-50 via-white to-teal-50 p-4">
-        <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-sky-200/30 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-teal-200/30 blur-3xl" />
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-50 via-white to-teal-50 dark:from-background dark:via-background dark:to-background p-4">
+        <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-sky-200/30 dark:bg-sky-900/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-teal-200/30 dark:bg-teal-900/20 blur-3xl" />
 
         <div className="relative w-full max-w-md space-y-6">
-          <Button variant="ghost" onClick={onBack} className="gap-2 text-slate-600">
+          <Button variant="ghost" onClick={onBack} className="gap-2 text-muted-foreground">
             <ArrowLeft className="h-4 w-4" /> Back to Home
           </Button>
 
-          <Card className="border-0 shadow-xl">
+          <Card className="border-0 shadow-xl dark:border dark:border-border">
             <CardHeader className="text-center pb-2">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-sky-500 text-white">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                 <BookOpen className="h-7 w-7" />
               </div>
               <CardTitle className="text-2xl font-bold">Join a Quiz</CardTitle>
@@ -164,9 +164,9 @@ export function TestTaker({ onBack, initialName = '', initialCode = '' }: TestTa
             </CardHeader>
             <CardContent className="space-y-5">
               {joinError && (
-                <Alert variant="destructive" className="border-red-200 bg-red-50">
+                <Alert variant="destructive" className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/50">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-red-800">{joinError}</AlertDescription>
+                  <AlertDescription className="text-red-800 dark:text-red-300">{joinError}</AlertDescription>
                 </Alert>
               )}
 
@@ -201,9 +201,9 @@ export function TestTaker({ onBack, initialName = '', initialCode = '' }: TestTa
               </div>
 
               <Button
-                onClick={handleJoin}
+                onClick={() => handleJoin()}
                 disabled={joining || !studentName.trim() || !accessCode.trim()}
-                className="h-12 w-full bg-sky-500 text-base font-semibold hover:bg-sky-600"
+                className="h-12 w-full bg-primary text-primary-foreground text-base font-semibold hover:bg-primary/90"
               >
                 {joining ? (
                   <>
@@ -246,15 +246,15 @@ export function TestTaker({ onBack, initialName = '', initialCode = '' }: TestTa
   const isLast = currentIndex === totalQuestions - 1;
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-sky-50 via-white to-teal-50">
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-sky-50 via-white to-teal-50 dark:from-background dark:via-background dark:to-background">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b bg-white/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <GraduationCap className="h-5 w-5 text-sky-500" />
-            <span className="font-semibold text-slate-900">{quiz.title}</span>
+            <span className="font-semibold text-foreground">{quiz.title}</span>
           </div>
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-muted-foreground">
             {answeredCount}/{totalQuestions} answered
           </span>
         </div>
@@ -268,20 +268,20 @@ export function TestTaker({ onBack, initialName = '', initialCode = '' }: TestTa
         <div className="w-full max-w-2xl space-y-8">
           {/* Question number badge */}
           <div className="text-center">
-            <span className="inline-flex items-center rounded-full bg-sky-100 px-4 py-1 text-sm font-medium text-sky-700">
+            <span className="inline-flex items-center rounded-full bg-sky-100 dark:bg-sky-900/40 px-4 py-1 text-sm font-medium text-sky-700 dark:text-sky-300">
               Question {currentIndex + 1} of {totalQuestions}
             </span>
           </div>
 
           {/* Question card */}
-          <Card className="border-0 shadow-xl">
+          <Card className="border-0 shadow-xl dark:border dark:border-border">
             <CardContent className="p-8">
               <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-xl font-bold leading-relaxed text-slate-900 sm:text-2xl">
+                <h2 className="text-xl font-bold leading-relaxed text-foreground sm:text-2xl">
                   {currentQ.text}
                 </h2>
               </div>
-              <p className="mb-6 text-sm text-slate-400">{currentQ.points} points</p>
+              <p className="mb-6 text-sm text-muted-foreground">{currentQ.points} points</p>
 
               {/* Multiple Choice */}
               {currentQ.type === 'multiple-choice' && currentQ.options && (
@@ -294,23 +294,23 @@ export function TestTaker({ onBack, initialName = '', initialCode = '' }: TestTa
                     <div
                       key={opt.id}
                       className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 p-4 transition-all ${currentAnswer === opt.id
-                          ? 'border-sky-500 bg-sky-50'
-                          : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                          ? 'border-sky-500 bg-sky-50 dark:bg-sky-950/40'
+                          : 'border-border hover:border-border hover:bg-accent'
                         }`}
                       onClick={() => handleAnswer(currentQ.id, opt.id)}
                     >
                       <RadioGroupItem value={opt.id} id={opt.id} className="sr-only" />
                       <div
                         className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-sm font-medium transition-colors ${currentAnswer === opt.id
-                            ? 'border-sky-500 bg-sky-500 text-white'
-                            : 'border-slate-300 text-slate-400'
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-border text-muted-foreground'
                           }`}
                       >
                         {currentAnswer === opt.id ? '✓' : ''}
                       </div>
                       <Label
                         htmlFor={opt.id}
-                        className="flex-1 cursor-pointer text-base font-normal text-slate-700"
+                        className="flex-1 cursor-pointer text-base font-normal text-foreground"
                       >
                         {opt.text}
                       </Label>
@@ -346,7 +346,7 @@ export function TestTaker({ onBack, initialName = '', initialCode = '' }: TestTa
               <Button
                 onClick={handleSubmit}
                 disabled={submitting || answeredCount === 0}
-                className="gap-2 bg-emerald-500 px-8 hover:bg-emerald-600"
+                className="gap-2 bg-emerald-600 text-white px-8 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500"
               >
                 {submitting ? (
                   <>
@@ -361,7 +361,7 @@ export function TestTaker({ onBack, initialName = '', initialCode = '' }: TestTa
             ) : (
               <Button
                 onClick={() => setCurrentIndex(Math.min(totalQuestions - 1, currentIndex + 1))}
-                className="gap-2 bg-sky-500 hover:bg-sky-600"
+                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 Next <ArrowRight className="h-4 w-4" />
               </Button>
@@ -378,10 +378,10 @@ export function TestTaker({ onBack, initialName = '', initialCode = '' }: TestTa
                   key={q.id}
                   onClick={() => setCurrentIndex(i)}
                   className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-medium transition-all ${isCurrent
-                      ? 'bg-sky-500 text-white ring-2 ring-sky-300 ring-offset-2'
+                      ? 'bg-primary text-primary-foreground ring-2 ring-primary/40 ring-offset-2 ring-offset-background'
                       : isAnswered
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                        : 'bg-muted text-muted-foreground hover:bg-accent'
                     }`}
                 >
                   {i + 1}

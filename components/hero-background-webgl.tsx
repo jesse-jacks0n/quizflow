@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
+import { useTheme } from 'next-themes';
 
 // WebGL shader sources
 const VS_SOURCE = `
@@ -80,6 +81,7 @@ const VS_SOURCE = `
 const FS_SOURCE = `
     precision mediump float;
     varying float v_opacity;
+    uniform float u_isDark;
 
     void main() {
         // Construct circular dots inside the gl_PointCoord square
@@ -87,10 +89,13 @@ const FS_SOURCE = `
         float r = dot(cxy, cxy);
         if (r > 1.0) discard;
         
-        // Ambient slate-colored particle
         // Soft gaussian edge fade for the continuous field "membrane" look
         float alpha = (1.0 - r) * 0.35 * v_opacity;
-        vec3 color = vec3(0.58, 0.64, 0.72); // slate-400
+        
+        // Adapt particle color for light vs dark mode
+        vec3 lightColor = vec3(0.58, 0.64, 0.72); // slate-400
+        vec3 darkColor  = vec3(0.42, 0.48, 0.58);  // slate-500 (lighter dots on dark bg)
+        vec3 color = mix(lightColor, darkColor, u_isDark);
         
         // Pre-multiplied alpha for proper blending
         gl_FragColor = vec4(color * alpha, alpha);
@@ -112,31 +117,52 @@ function createShader(gl: WebGLRenderingContext, type: number, source: string) {
 
 export function HeroBackgroundWebGL() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const glRef = useRef<{
+        gl: WebGLRenderingContext;
+        program: WebGLProgram;
+        vs: WebGLShader;
+        fs: WebGLShader;
+        buffer: WebGLBuffer;
+        particleCount: number;
+        timeLoc: WebGLUniformLocation | null;
+        resLoc: WebGLUniformLocation | null;
+        mouseLoc: WebGLUniformLocation | null;
+        dprLoc: WebGLUniformLocation | null;
+        isDarkLoc: WebGLUniformLocation | null;
+        positionLocation: number;
+    } | null>(null);
+    const animFrameRef = useRef<number>(0);
+    const isVisibleRef = useRef(true);
+    const contextLostRef = useRef(false);
+    const startTimeRef = useRef(performance.now());
+    const mouseRef = useRef({ target: { x: -2, y: -2 }, current: { x: -2, y: -2 } });
+    const sizeRef = useRef({ width: 0, height: 0, dpr: 1 });
 
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+    const { resolvedTheme } = useTheme();
 
-        // Request WebGL with alpha blending support
-        const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true });
+    // Reduce particle count on mobile for performance
+    const getGridSize = useCallback(() => {
+        if (typeof window === 'undefined') return 60;
+        const isMobile = window.innerWidth < 768;
+        return isMobile ? 45 : 70;
+    }, []);
+
+    const initGL = useCallback((canvas: HTMLCanvasElement): boolean => {
+        const gl = canvas.getContext('webgl', {
+            alpha: true,
+            premultipliedAlpha: true,
+            powerPreference: 'low-power',       // Prefer battery-saving GPU
+            failIfMajorPerformanceCaveat: false, // Don't fail on slow devices
+        });
         if (!gl) {
             console.warn('WebGL not supported');
-            return;
+            return false;
         }
 
-        // Accessibility fallback check
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-        // 1. Compile Shaders & Link Program
-        let vs: WebGLShader | null = null;
-        let fs: WebGLShader | null = null;
-        let program: WebGLProgram | null = null;
-        let positionBuffer: WebGLBuffer | null = null;
-
-        vs = createShader(gl, gl.VERTEX_SHADER, VS_SOURCE);
-        fs = createShader(gl, gl.FRAGMENT_SHADER, FS_SOURCE);
-        program = gl.createProgram();
-        if (!program || !vs || !fs) return;
+        const vs = createShader(gl, gl.VERTEX_SHADER, VS_SOURCE);
+        const fs = createShader(gl, gl.FRAGMENT_SHADER, FS_SOURCE);
+        const program = gl.createProgram();
+        if (!program || !vs || !fs) return false;
 
         gl.attachShader(program, vs);
         gl.attachShader(program, fs);
@@ -144,80 +170,140 @@ export function HeroBackgroundWebGL() {
 
         if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
             console.error('Program link error:', gl.getProgramInfoLog(program));
-            return;
+            return false;
         }
 
-        // 2. Initialize grid geometry (static buffer)
-        // This generates a massive mesh of vertices from -1 to 1 in NDC
-        // We push them ONCE to the GPU buffer.
-        const particles = [];
-        const gridSize = 80; // Total 80x80 = 6400 particles. Rendering takes 0 overhead.
-        
+        // Generate particle grid
+        const gridSize = getGridSize();
+        const particles: number[] = [];
         for (let x = 0; x <= gridSize; x++) {
             for (let y = 0; y <= gridSize; y++) {
-                // Map from 0-size to -1.2 to +1.2 (bleeding past edges subtly)
                 const px = (x / gridSize) * 2.4 - 1.2;
                 const py = (y / gridSize) * 2.4 - 1.2;
                 particles.push(px, py);
             }
         }
 
-        positionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        const buffer = gl.createBuffer();
+        if (!buffer) return false;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(particles), gl.STATIC_DRAW);
 
-        // 3. Set up attributes & uniforms
         const positionLocation = gl.getAttribLocation(program, 'a_position');
         gl.enableVertexAttribArray(positionLocation);
         gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
-        const timeLoc = gl.getUniformLocation(program, 'u_time');
-        const resLoc = gl.getUniformLocation(program, 'u_resolution');
-        const mouseLoc = gl.getUniformLocation(program, 'u_mouse');
-        const dprLoc = gl.getUniformLocation(program, 'u_dpr');
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        // State trackers
-        let animationFrameId: number;
-        let width = 0;
-        let height = 0;
-        let dpr = 1;
-        const targetMouse = { x: -2.0, y: -2.0 };
-        const currentMouse = { x: -2.0, y: -2.0 };
-
-        // 4. Resize & Layout Logic
-        const handleResize = () => {
-            const parent = canvas.parentElement;
-            if (!parent) return;
-            width = parent.clientWidth;
-            height = parent.clientHeight;
-            dpr = window.devicePixelRatio || 1;
-
-            canvas.width = width * dpr;
-            canvas.height = height * dpr;
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
-            gl.viewport(0, 0, canvas.width, canvas.height);
+        glRef.current = {
+            gl,
+            program,
+            vs,
+            fs,
+            buffer,
+            particleCount: particles.length / 2,
+            timeLoc: gl.getUniformLocation(program, 'u_time'),
+            resLoc: gl.getUniformLocation(program, 'u_resolution'),
+            mouseLoc: gl.getUniformLocation(program, 'u_mouse'),
+            dprLoc: gl.getUniformLocation(program, 'u_dpr'),
+            isDarkLoc: gl.getUniformLocation(program, 'u_isDark'),
+            positionLocation,
         };
+
+        contextLostRef.current = false;
+        return true;
+    }, [getGridSize]);
+
+    const handleResize = useCallback(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const parent = canvas.parentElement;
+        if (!parent) return;
+        const width = parent.clientWidth;
+        const height = parent.clientHeight;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap DPR at 2 for performance
+
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        
+        sizeRef.current = { width, height, dpr };
+        
+        if (glRef.current) {
+            glRef.current.gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+    }, []);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        // Accessibility fallback check
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+        // Initialize WebGL
+        if (!initGL(canvas)) return;
 
         handleResize();
         window.addEventListener('resize', handleResize);
 
-        // 5. Mouse tracking
-        // Map DOM coordinates to NDC (-1 to +1) where Y builds up from bottom
+        // ── Context loss/restore handlers ─────────────────────
+        const handleContextLost = (e: Event) => {
+            e.preventDefault(); // Allow restore
+            contextLostRef.current = true;
+            cancelAnimationFrame(animFrameRef.current);
+        };
+
+        const handleContextRestored = () => {
+            // Re-initialize everything from scratch
+            if (canvas && initGL(canvas)) {
+                handleResize();
+                contextLostRef.current = false;
+                startTimeRef.current = performance.now();
+                if (!prefersReducedMotion.matches) {
+                    render();
+                }
+            }
+        };
+
+        canvas.addEventListener('webglcontextlost', handleContextLost);
+        canvas.addEventListener('webglcontextrestored', handleContextRestored);
+
+        // ── Visibility observer: pause when offscreen ─────────
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                const wasVisible = isVisibleRef.current;
+                isVisibleRef.current = entry.isIntersecting;
+                
+                // Resume animation when coming back into view
+                if (!wasVisible && entry.isIntersecting && !contextLostRef.current && !prefersReducedMotion.matches) {
+                    cancelAnimationFrame(animFrameRef.current);
+                    render();
+                }
+            },
+            { threshold: 0.05 } // Trigger when at least 5% visible
+        );
+        observer.observe(canvas);
+
+        // ── Mouse tracking ────────────────────────────────────
         const handleMouseMove = (e: MouseEvent) => {
             const parent = canvas.parentElement;
             if (!parent) return;
             const rect = parent.getBoundingClientRect();
             const sx = e.clientX - rect.left;
             const sy = e.clientY - rect.top;
+            const { width, height } = sizeRef.current;
+            if (width === 0 || height === 0) return;
             
-            targetMouse.x = (sx / width) * 2.0 - 1.0;
-            targetMouse.y = -((sy / height) * 2.0 - 1.0);
+            mouseRef.current.target.x = (sx / width) * 2.0 - 1.0;
+            mouseRef.current.target.y = -((sy / height) * 2.0 - 1.0);
         };
 
         const handleMouseLeave = () => {
-            targetMouse.x = -2.0;
-            targetMouse.y = -2.0;
+            mouseRef.current.target.x = -2.0;
+            mouseRef.current.target.y = -2.0;
         };
 
         const parent = canvas.parentElement;
@@ -226,66 +312,78 @@ export function HeroBackgroundWebGL() {
             parent.addEventListener('mouseleave', handleMouseLeave);
         }
 
-        // 6. Native GL setup
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA); // Premultiplied alpha blending
-
-        // 7. Render Loop
-        const startTime = performance.now();
-
+        // ── Render loop ───────────────────────────────────────
         const render = () => {
-            if (!prefersReducedMotion.matches) {
-                // Smoothly ease current mouse towards target mouse for fluid trailing interaction
-                currentMouse.x += (targetMouse.x - currentMouse.x) * 0.1;
-                currentMouse.y += (targetMouse.y - currentMouse.y) * 0.1;
-            }
+            if (contextLostRef.current || !glRef.current) return;
+            
+            // Don't render when offscreen — save GPU/battery
+            if (!isVisibleRef.current) return;
+
+            const { gl, program, particleCount, timeLoc, resLoc, mouseLoc, dprLoc, isDarkLoc } = glRef.current;
+            const { width, height, dpr } = sizeRef.current;
+            const mouse = mouseRef.current;
+
+            // Smoothly ease mouse
+            mouse.current.x += (mouse.target.x - mouse.current.x) * 0.1;
+            mouse.current.y += (mouse.target.y - mouse.current.y) * 0.1;
 
             gl.clearColor(0.0, 0.0, 0.0, 0.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             gl.useProgram(program);
-            
-            // Push uniforms each frame
-            gl.uniform1f(timeLoc, (performance.now() - startTime) * 0.001);
+            gl.uniform1f(timeLoc, (performance.now() - startTimeRef.current) * 0.001);
             gl.uniform2f(resLoc, width, height);
-            gl.uniform2f(mouseLoc, currentMouse.x, currentMouse.y);
+            gl.uniform2f(mouseLoc, mouse.current.x, mouse.current.y);
             gl.uniform1f(dprLoc, dpr);
+            // Pass current theme to shader: 1.0 = dark, 0.0 = light
+            gl.uniform1f(isDarkLoc, resolvedTheme === 'dark' ? 1.0 : 0.0);
 
-            // Draw field 
-            gl.drawArrays(gl.POINTS, 0, particles.length / 2);
+            gl.drawArrays(gl.POINTS, 0, particleCount);
 
-            animationFrameId = requestAnimationFrame(render);
+            animFrameRef.current = requestAnimationFrame(render);
         };
 
-        // Pause animation completely on reduced motion (draw one static frame)
+        // Start rendering or draw static frame
         if (prefersReducedMotion.matches) {
-            // Draw a single snapshot
             requestAnimationFrame(() => {
+                if (!glRef.current || contextLostRef.current) return;
+                const { gl, program, particleCount, timeLoc, resLoc, mouseLoc, dprLoc, isDarkLoc } = glRef.current;
+                const { width, height, dpr } = sizeRef.current;
+                gl.clearColor(0.0, 0.0, 0.0, 0.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
                 gl.useProgram(program);
-                gl.uniform1f(timeLoc, 10.0); // Arbitrary static time
+                gl.uniform1f(timeLoc, 10.0);
                 gl.uniform2f(resLoc, width, height);
                 gl.uniform2f(mouseLoc, -2.0, -2.0);
                 gl.uniform1f(dprLoc, dpr);
-                gl.drawArrays(gl.POINTS, 0, particles.length / 2);
+                gl.uniform1f(isDarkLoc, resolvedTheme === 'dark' ? 1.0 : 0.0);
+                gl.drawArrays(gl.POINTS, 0, particleCount);
             });
         } else {
             render();
         }
 
-        // 8. Cleanup
+        // ── Cleanup ───────────────────────────────────────────
         return () => {
             window.removeEventListener('resize', handleResize);
+            canvas.removeEventListener('webglcontextlost', handleContextLost);
+            canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+            observer.disconnect();
             if (parent) {
                 parent.removeEventListener('mousemove', handleMouseMove);
                 parent.removeEventListener('mouseleave', handleMouseLeave);
             }
-            cancelAnimationFrame(animationFrameId);
-            gl.deleteProgram(program);
-            gl.deleteShader(vs);
-            gl.deleteShader(fs);
-            gl.deleteBuffer(positionBuffer);
+            cancelAnimationFrame(animFrameRef.current);
+            if (glRef.current && !contextLostRef.current) {
+                const { gl, program, vs, fs, buffer } = glRef.current;
+                gl.deleteProgram(program);
+                gl.deleteShader(vs);
+                gl.deleteShader(fs);
+                gl.deleteBuffer(buffer);
+            }
+            glRef.current = null;
         };
-    }, []);
+    }, [initGL, handleResize, resolvedTheme]);
 
     return (
         <canvas

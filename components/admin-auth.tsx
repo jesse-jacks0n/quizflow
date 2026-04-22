@@ -48,24 +48,24 @@ export function AdminAuth({ onBack, onSuccess }: AdminAuthProps) {
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-50 via-white to-teal-50 p-4">
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-sky-50 via-white to-teal-50 dark:from-background dark:via-background dark:to-background p-4">
             {/* Decorative blobs */}
-            <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-sky-200/30 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-teal-200/30 blur-3xl" />
+            <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-sky-200/30 dark:bg-sky-900/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-teal-200/30 dark:bg-teal-900/20 blur-3xl" />
 
             <div className="relative w-full max-w-md space-y-6">
                 <Button
                     variant="ghost"
                     onClick={onBack}
-                    className="gap-2 text-slate-600 hover:text-slate-900"
+                    className="gap-2 text-muted-foreground hover:text-foreground"
                 >
                     <ArrowLeft className="h-4 w-4" />
                     Back to Home
                 </Button>
 
-                <Card className="border-0 shadow-xl">
+                <Card className="border-0 shadow-xl dark:border dark:border-border">
                     <CardHeader className="text-center pb-2">
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-sky-500 text-white">
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                             <Shield className="h-7 w-7" />
                         </div>
                         <CardTitle className="text-2xl font-bold">Educator Login</CardTitle>
@@ -76,7 +76,7 @@ export function AdminAuth({ onBack, onSuccess }: AdminAuthProps) {
                     <CardContent>
                         <form onSubmit={handleLogin} className="space-y-5">
                             {error && (
-                                <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800">
+                                <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300">
                                     <AlertDescription>{error}</AlertDescription>
                                 </Alert>
                             )}
@@ -116,7 +116,7 @@ export function AdminAuth({ onBack, onSuccess }: AdminAuthProps) {
                             <Button
                                 type="submit"
                                 disabled={loading || !email.trim() || !password.trim()}
-                                className="h-12 w-full bg-sky-500 text-base font-semibold hover:bg-sky-600"
+                                className="h-12 w-full bg-primary text-primary-foreground text-base font-semibold hover:bg-primary/90"
                             >
                                 {loading ? (
                                     <>
@@ -129,8 +129,8 @@ export function AdminAuth({ onBack, onSuccess }: AdminAuthProps) {
                             </Button>
                         </form>
 
-                        <div className="mt-6 rounded-lg bg-slate-50 p-4 text-center">
-                            <p className="text-sm text-slate-500">
+                        <div className="mt-6 rounded-lg bg-muted p-4 text-center">
+                            <p className="text-sm text-muted-foreground">
                                 Don&apos;t have an account? Contact your institution administrator
                                 to get your educator credentials.
                             </p>

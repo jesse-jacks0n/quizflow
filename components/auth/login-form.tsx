@@ -46,15 +46,15 @@ export function LoginForm({ onBack, onNavigateSignup, onLoginSuccess }: LoginFor
     return (
         <div className="max-w-[400px] w-full mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="text-center space-y-2">
-                <Button variant="ghost" className="mb-4 text-slate-500" onClick={onBack}>
+                <Button variant="ghost" className="mb-4 text-muted-foreground" onClick={onBack}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                 </Button>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900">Educator Login</h1>
-                <p className="text-sm text-slate-500">Enter your credentials to access your dashboard</p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">Educator Login</h1>
+                <p className="text-sm text-muted-foreground">Enter your credentials to access your dashboard</p>
             </div>
 
-            <Card className="border-slate-200 shadow-sm">
+            <Card className="border-border shadow-sm">
                 <CardContent className="p-6">
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div className="space-y-2">
@@ -62,7 +62,7 @@ export function LoginForm({ onBack, onNavigateSignup, onLoginSuccess }: LoginFor
                             <Input 
                                 id="email" 
                                 type="email"
-                                className="h-10 border-slate-200 focus-visible:ring-slate-900" 
+                                className="h-10 border-border focus-visible:ring-ring" 
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 disabled={loading}
@@ -71,14 +71,14 @@ export function LoginForm({ onBack, onNavigateSignup, onLoginSuccess }: LoginFor
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <Label htmlFor="password">Password</Label>
-                                <Button variant="link" className="p-0 h-auto font-normal text-xs text-slate-500 hover:text-slate-900" type="button">
+                                <Button variant="link" className="p-0 h-auto font-normal text-xs text-muted-foreground hover:text-foreground" type="button">
                                     Forgot password?
                                 </Button>
                             </div>
                             <Input 
                                 id="password" 
                                 type="password"
-                                className="h-10 border-slate-200 focus-visible:ring-slate-900" 
+                                className="h-10 border-border focus-visible:ring-ring" 
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 disabled={loading}
@@ -86,7 +86,7 @@ export function LoginForm({ onBack, onNavigateSignup, onLoginSuccess }: LoginFor
                         </div>
                         <Button 
                             type="submit" 
-                            className="w-full h-10 bg-slate-900 text-white hover:bg-slate-800 transition-colors mt-2"
+                            className="w-full h-10 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors mt-2"
                             disabled={!email.trim() || !password.trim() || loading}
                         >
                             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Sign in'}
@@ -95,7 +95,7 @@ export function LoginForm({ onBack, onNavigateSignup, onLoginSuccess }: LoginFor
                         <div className="pt-4 text-center">
                             <Button 
                                 variant="ghost" 
-                                className="text-sm text-slate-600 hover:text-slate-900" 
+                                className="text-sm text-muted-foreground hover:text-foreground" 
                                 onClick={onNavigateSignup}
                                 type="button"
                             >

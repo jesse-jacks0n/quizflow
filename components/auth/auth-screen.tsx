@@ -22,7 +22,7 @@ export function AuthScreen({ onBack, onStudentStart, onLoginSuccess, initialMode
     const [mode, setMode] = useState<AuthMode>(initialMode);
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 selection:bg-slate-200">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4 selection:bg-muted">
             <div className="w-full max-w-2xl mx-auto">
                 {mode === 'entry' && (
                     <AuthEntry 

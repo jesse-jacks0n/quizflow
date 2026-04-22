@@ -35,15 +35,15 @@ export function SignupForm({ onBack, onNavigateLogin }: SignupFormProps) {
     return (
         <div className="max-w-[400px] w-full mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="text-center space-y-2">
-                <Button variant="ghost" className="mb-4 text-slate-500" onClick={onBack}>
+                <Button variant="ghost" className="mb-4 text-muted-foreground" onClick={onBack}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                 </Button>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900">Create an account</h1>
-                <p className="text-sm text-slate-500">Sign up to start building assessments</p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">Create an account</h1>
+                <p className="text-sm text-muted-foreground">Sign up to start building assessments</p>
             </div>
 
-            <Card className="border-slate-200 shadow-sm">
+            <Card className="border-border shadow-sm">
                 <CardContent className="p-6">
                     <form onSubmit={handleSignup} className="space-y-5">
                         <div className="space-y-2">
@@ -51,7 +51,7 @@ export function SignupForm({ onBack, onNavigateLogin }: SignupFormProps) {
                             <Input 
                                 id="name" 
                                 type="text"
-                                className="h-10 border-slate-200 focus-visible:ring-slate-900" 
+                                className="h-10 border-border focus-visible:ring-ring" 
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 disabled={loading}
@@ -62,7 +62,7 @@ export function SignupForm({ onBack, onNavigateLogin }: SignupFormProps) {
                             <Input 
                                 id="email" 
                                 type="email"
-                                className="h-10 border-slate-200 focus-visible:ring-slate-900" 
+                                className="h-10 border-border focus-visible:ring-ring" 
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 disabled={loading}
@@ -73,7 +73,7 @@ export function SignupForm({ onBack, onNavigateLogin }: SignupFormProps) {
                             <Input 
                                 id="password" 
                                 type="password"
-                                className="h-10 border-slate-200 focus-visible:ring-slate-900" 
+                                className="h-10 border-border focus-visible:ring-ring" 
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 disabled={loading}
@@ -81,7 +81,7 @@ export function SignupForm({ onBack, onNavigateLogin }: SignupFormProps) {
                         </div>
                         <Button 
                             type="submit" 
-                            className="w-full h-10 bg-slate-900 text-white hover:bg-slate-800 transition-colors mt-2"
+                            className="w-full h-10 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors mt-2"
                             disabled={!name.trim() || !email.trim() || !password.trim() || loading}
                         >
                             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create account'}
@@ -90,7 +90,7 @@ export function SignupForm({ onBack, onNavigateLogin }: SignupFormProps) {
                         <div className="pt-4 text-center">
                             <Button 
                                 variant="ghost" 
-                                className="text-sm text-slate-600 hover:text-slate-900" 
+                                className="text-sm text-muted-foreground hover:text-foreground" 
                                 onClick={onNavigateLogin}
                                 type="button"
                             >
