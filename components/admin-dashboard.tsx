@@ -52,6 +52,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
+import { ModeToggle } from './mode-toggle';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -618,9 +619,13 @@ function DashboardShell({ children, onLogout, onBack }: { children: React.ReactN
               Admin
             </Badge>
           </div>
+          <div>
+            <ModeToggle />
           <Button variant="ghost" size="sm" onClick={onLogout} className="gap-2 text-muted-foreground hover:text-foreground hover:bg-muted">
             <LogOut className="h-4 w-4" /> Sign Out
           </Button>
+          </div>
+          
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
